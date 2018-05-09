@@ -20,6 +20,17 @@ module Minitest
       # Takes possible options. E.g. :verbose => true
       def initialize(options = {})
         super
+        default_options = { :reports_dir => "test/reports", :empty => true }
+        options = default_options.merge(options)
+
+        reports_dir = options[:reports_dir]
+        @reports_path = File.absolute_path(reports_dir)
+        empty = options[:empty]
+        if empty
+          puts "Emptying #{@reports_path}"
+          FileUtils.mkdir_p(@reports_path)
+          File.delete(*Dir.glob("#{@reports_path}/TEST-*.xml"))
+        end
       end
 
       ##
@@ -35,6 +46,8 @@ module Minitest
         @storage = to_h
         # formate @storage as JSON and write to output stream
         io.write(JSON.dump(@storage))
+        fn = File.join(@reports_path, 'output.json')
+        File.open(fn, "w") { |file| file << JSON.dump(@storage)}
       end
 
       protected
