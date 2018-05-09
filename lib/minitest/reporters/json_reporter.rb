@@ -22,7 +22,6 @@ module Minitest
         super
         default_options = { :reports_dir => "test/reports", :empty => true }
         options = default_options.merge(options)
-
         reports_dir = options[:reports_dir]
         @reports_path = File.absolute_path(reports_dir)
         empty = options[:empty]
@@ -45,9 +44,9 @@ module Minitest
 
         @storage = to_h
         # formate @storage as JSON and write to output stream
-        io.write(JSON.dump(@storage))
         fn = File.join(@reports_path, 'output.json')
-        File.open(fn, "w") { |file| file << JSON.dump(@storage)}
+        puts "Writing test report  to file #{fn}"
+        File.open(fn, "w") { |file| file << JSON.dump(@storage) }
       end
 
       protected
@@ -229,7 +228,9 @@ module Minitest
           class: result.class.name,
           name: result.name,
           assertions: result.assertions,
-          time: result.time
+          time: result.time,
+          file: result.source_location[0],
+          line_number: result.source_location[1]
         }
       end
 
