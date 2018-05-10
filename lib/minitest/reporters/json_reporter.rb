@@ -2,6 +2,8 @@
 
 require 'json'
 require 'time'
+require 'uri'
+require 'net/http'
 
 require 'minitest'
 require 'minitest/reporters'
@@ -20,10 +22,13 @@ module Minitest
       # Takes possible options. E.g. :verbose => true
       def initialize(options = {})
         super
-        default_options = { :reports_dir => "test/reports", :empty => true }
+        default_options = { :reports_dir => "test/reports", :empty => true, :post => false, :uri => nil, :path => nil }
         options = default_options.merge(options)
         reports_dir = options[:reports_dir]
         @reports_path = File.absolute_path(reports_dir)
+        @post = options[:post]
+        @uri = options[:uri]
+        @path = options[:path]
         empty = options[:empty]
         if empty
           puts "Emptying #{@reports_path}"
@@ -44,9 +49,26 @@ module Minitest
 
         @storage = to_h
         # formate @storage as JSON and write to output stream
-        fn = File.join(@reports_path, 'output.json')
-        puts "Writing test report  to file #{fn}"
-        File.open(fn, "w") { |file| file << JSON.dump(@storage) }
+        if @post
+          uri = URI.parse(@uri)
+          http = Net::HTTP.new(uri.host, uri.port)
+          if uri.port == 443
+            http.use_ssl = true
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          end
+          request = Net::HTTP::Put.new(@path)
+          puts "Submiting Test Results"
+          puts uri + request.path
+          request.add_field('Content-Type', 'application/json')
+          request.body = JSON.dump(@storage)
+          response = http.request(request)
+          puts "HTTP Response Code: #{response.code}"
+          puts "HTTP Response Message: #{response.message}"
+        else
+          fn = File.join(@reports_path, 'output.json')
+          puts "Writing test report  to file #{fn}"
+          File.open(fn, "w") { |file| file << JSON.dump(@storage) }
+        end
       end
 
       protected
