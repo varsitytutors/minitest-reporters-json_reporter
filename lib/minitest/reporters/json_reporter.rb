@@ -62,6 +62,7 @@ module Minitest
           request.add_field('Content-Type', 'application/json')
           request.body = JSON.dump(@storage)
           response = http.request(request)
+          puts "Body in Bytes: #{request.body.bytesize}"
           puts "HTTP Response Code: #{response.code}"
           puts "HTTP Response Message: #{response.message}"
         else
