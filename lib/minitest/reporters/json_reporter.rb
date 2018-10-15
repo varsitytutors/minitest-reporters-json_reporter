@@ -57,15 +57,14 @@ module Minitest
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
           request = Net::HTTP::Put.new(@path)
-          puts "Submiting build results to VT Build Tracker"
-          puts uri + request.path
+          puts "sending build data to VT Build Tracker: #{uri + request.path}"
           request.add_field('Content-Type', 'application/json')
           request.body = JSON.dump(@storage)
           response = http.request(request)
-          puts "Bytes sent: #{request.body.bytesize}. Response code: #{response.code}  message: #{response.message}"
+          puts "    Bytes sent: #{request.body.bytesize}. Response code: #{response.code}  message: #{response.message}"
         else
           fn = File.join(@reports_path, 'output.json')
-          puts "Writing test report  to file #{fn}"
+          puts "Writing test report to file #{fn}"
           File.open(fn, "w") { |file| file << JSON.dump(@storage) }
         end
       end
