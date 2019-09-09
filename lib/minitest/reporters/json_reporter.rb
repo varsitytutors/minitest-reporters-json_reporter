@@ -243,14 +243,20 @@ module Minitest
       # Given a type string and a result (test).
       # Includes the type, the class, the name and the time of the result.
       def result_h(result, type)
+        location, line = if result.respond_to?(:source_location)
+          result.source_location
+        else
+          result.method(result.name).source_location
+        end
+
         {
           type: type,
           class: result.class.name,
           name: result.name,
           assertions: result.assertions,
           time: result.time,
-          file: result.source_location[0],
-          line_number: result.source_location[1]
+          file: location,
+          line_number: line
         }
       end
 
